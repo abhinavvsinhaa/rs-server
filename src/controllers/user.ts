@@ -4,11 +4,13 @@ import { StatusCodes } from "http-status-codes";
 import { User } from "../models/user";
 import jwt, { Secret } from 'jsonwebtoken'
 import { IToken } from "../types/token.types";
-import dotenv from 'dotenv';
 import { ICustomRequest } from "../types/customrequest.types";
+import bcrypt from 'bcrypt';
+import dotenv from 'dotenv';
 dotenv.config({ path: '../.env' })
 
 const secret: Secret = process.env.SECRET!;
+const saltRounds = Number(process.env.SALT_ROUNDS!);
 
 /**
  * Create user 
@@ -64,25 +66,18 @@ export const createUser = async (req: Request, res: Response) => {
             return;
         }
 
+        const salt = await bcrypt.genSalt(saltRounds);
+        const hash = await bcrypt.hash(password, salt);
+
         // new user created
         const newUser = new User({
             firstName,
             lastName,
             email,
-            password,
+            hash,
             role,
             agency
         });
-
-        const payload: IToken = { id: newUser._id }
-
-        // creating new token
-        const newUserToken = jwt.sign(payload, secret, {
-            expiresIn: '24h'
-        })
-
-        // setting the token for new user
-        newUser.token = newUserToken;
 
         await newUser.save();
 
@@ -93,6 +88,78 @@ export const createUser = async (req: Request, res: Response) => {
 
         res.send(response.message!).send(response);
     } catch (error) {
+        const err: Error = {
+            message: '',
+            err: error,
+            code: StatusCodes.INTERNAL_SERVER_ERROR
+        }
+        res.status(err.code!).send(err);
+
+        console.error('error in create user controller: ', error)
+    }
+}
+
+export const logInUser = async (req: Request, res: Response)  => {
+    try {
+        const { email, password } = req.body;
+        const user = await User.findOne({ email });
+
+        // user not found
+        if (!user) {
+            const err: Error = {
+                message: 'no user exists with the entered email id',
+                code: StatusCodes.BAD_REQUEST,
+                err: 'NA'
+            }
+            res.status(err.code!).send(err);
+            return;
+        }
+
+        const cmp = await bcrypt.compare(password, user.password);
+        // password matches
+        if (cmp) {
+            // sign token 
+            const payload: IToken = { id: user._id }
+
+            // creating new token
+            const userToken = jwt.sign(payload, secret, {
+                expiresIn: '24h'
+            })
+
+            // setting the token for new user
+            user.token = userToken;
+            await user.save();
+
+            // setting cookie
+            res.cookie('token', userToken, {
+                maxAge: 24*60*60*1000 // 24h, in ms
+            })
+
+            const response: Success = {
+                message: 'user logged in',
+                code: 200,
+            }
+            res.status(response.code!).send(response);
+            return;
+        } else {
+            // password do not matches with hash
+            const err: Error = {
+                message: 'username or password do not match',
+                err: 'NA',
+                code: StatusCodes.BAD_REQUEST
+            }
+            res.status(err.code!).send(err);
+        }
+
+
+    } catch (error) {
+        const err: Error = {
+            message: '',
+            err: error,
+            code: StatusCodes.INTERNAL_SERVER_ERROR
+        }
+        res.status(err.code!).send(err);
+
         console.error('error in create user controller: ', error)
     }
 }
