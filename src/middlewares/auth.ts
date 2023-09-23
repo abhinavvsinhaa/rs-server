@@ -3,14 +3,11 @@ import { Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv'
 import { Error } from '../types/response.types';
 import { StatusCodes } from 'http-status-codes';
+import { ICustomRequest } from '../types/customrequest.types';
 
 dotenv.config({ path: '../.env' })
 
 const secret: Secret = process.env.SECRET!;
-
-interface ICustomRequest extends Request {
-    token: string | JwtPayload
-}
 
 export const auth = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -29,7 +26,7 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
 
         // decoding token
         const decoded = jwt.verify(token, secret);
-        (req as ICustomRequest).token = decoded;
+        (req as ICustomRequest).decoded = decoded;
         
         next();
     } catch (error: any) {
