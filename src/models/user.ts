@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document, Model, model } from "mongoose";
-import { IUser, Roles } from "../types/user";
+import { IUser, Roles } from "../types/user.types";
 
 const userSchema = new Schema<IUser>({
     firstName: {
@@ -26,14 +26,17 @@ const userSchema = new Schema<IUser>({
         lowercase: true,
         unique: true,
     },
-    roles: {
-        type: String,
+    role: {
+        type: Number,
         enum: Roles,
         required: true,
     },
     agency: {
         type: mongoose.Types.ObjectId,
         ref: 'Agency',
+    },
+    token: {
+        type: String,
     }
 })
 
