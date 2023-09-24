@@ -14,6 +14,13 @@ export interface IResource {
     quantity: number
 }
 
+export enum Status {
+    PENDING = 'pending',
+    APPROVED = 'approved',
+    REJECTED = 'rejected'
+}
+
+
 export interface ITeam {
     members: Array<mongoose.Types.ObjectId> | Array<IUser>,
     leader: mongoose.Types.ObjectId | IUser,
@@ -34,5 +41,6 @@ export interface IAgency {
     central: boolean, // is it a central agency
     state: string,
     contactEmail: string,
-    contactNumber: string
+    contactNumber: string,
+    status: Status
 }
