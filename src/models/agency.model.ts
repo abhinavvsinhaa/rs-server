@@ -40,6 +40,7 @@ const agencySchema = new Schema<IAgency>({
             },
             message: 'Please enter a valid email address'
         },
+        unique: true
     },
     contactNumber: {
         type: String,
@@ -49,7 +50,8 @@ const agencySchema = new Schema<IAgency>({
                 return /^[6-9]\d{9}$/.test(v);
             },
             message: 'Please enter a valid mobile number'
-        }
+        },
+        unique: true
     },
     status: {
         type: String,

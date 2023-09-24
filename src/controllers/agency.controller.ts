@@ -5,6 +5,7 @@ import {StatusCodes} from "http-status-codes";
 import {ICustomRequest} from "../types/customrequest.types";
 import {IToken} from "../types/token.types";
 import {UserModel} from "../models/user.model";
+import {Document} from "mongoose";
 
 /**
  * Create agency or sign up agency
@@ -39,6 +40,16 @@ export const registerAgency = async (req: Request, res: Response) => {
 
         // saving new agency
         await newAgency.save();
+        const response: ResponseType<Document<any>> = {
+            code: StatusCodes.CREATED,
+            success: true,
+            data: {
+                body: newAgency,
+                message: 'new agency created'
+            },
+            error: null
+        }
+        res.status(response.code!).send(response);
     } catch (e) {
         const err: ResponseType<any> = {
             code: StatusCodes.INTERNAL_SERVER_ERROR,
