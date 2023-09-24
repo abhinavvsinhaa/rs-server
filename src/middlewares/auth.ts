@@ -1,9 +1,9 @@
-import jwt, { JwtPayload, Secret } from 'jsonwebtoken';
-import { Request, Response, NextFunction } from 'express';
+import jwt, {Secret} from 'jsonwebtoken';
+import {NextFunction, Request, Response} from 'express';
 import dotenv from 'dotenv'
-import { ResponseType } from '../types/response.types';
-import { StatusCodes } from 'http-status-codes';
-import { ICustomRequest } from '../types/customrequest.types';
+import {ResponseType} from '../types/response.types';
+import {StatusCodes} from 'http-status-codes';
+import {ICustomRequest} from '../types/customrequest.types';
 
 dotenv.config({ path: '../.env' })
 
@@ -11,6 +11,7 @@ const secret: Secret = process.env.SECRET!;
 
 export const auth = async (req: Request, res: Response, next: NextFunction) => {
     try {
+
         const token: string | undefined = req.header('Authorization')?.replace('Bearer ', '');
         
         // returning if token not present
@@ -28,8 +29,7 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
         }
 
         // decoding token
-        const decoded = jwt.verify(token, secret);
-        (req as ICustomRequest).decoded = decoded;
+        (req as ICustomRequest).decoded = jwt.verify(token, secret);
         
         next();
     } catch (error: any) {
