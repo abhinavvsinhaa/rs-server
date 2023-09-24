@@ -4,6 +4,7 @@ import cors from 'cors';
 import { connectDB } from './config/db';
 import {getAllowedURL} from "./config/cors";
 import router from "./routes/index.route";
+import cookieParser from 'cookie-parser';
 
 dotenv.config();
 
@@ -16,6 +17,7 @@ let corsOptions = {
 
 
 app.use(cors(corsOptions));
+app.use(cookieParser());
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 
