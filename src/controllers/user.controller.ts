@@ -17,8 +17,11 @@ const saltRounds = Number(process.env.SALT_ROUNDS!);
 
 /**
  * Create user
+<<<<<<< HEAD
  * @param req
  * @param res
+=======
+>>>>>>> d066b4b8f43d05d57937574fd8c178676f17a49c
  */
 export const createUser = async (req: Request, res: Response) => {
     try {
