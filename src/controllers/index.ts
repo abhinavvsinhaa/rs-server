@@ -1,4 +1,4 @@
 import {createUser, loginUser, me} from "./user.controller";
-import {registerAgency} from "./agency.controller";
+import {registerAgency, getAllAgencies} from "./agency.controller";
 
-export { createUser, loginUser, registerAgency, me }
+export { createUser, loginUser, registerAgency, me, getAllAgencies }
