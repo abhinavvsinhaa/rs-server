@@ -1,19 +1,22 @@
-import { Request, Response } from "express";
-import { ResponseType } from "../types/response.types";
-import { StatusCodes } from "http-status-codes";
-import { User } from "../models/user";
-import jwt, { Secret } from 'jsonwebtoken'
-import { IToken } from "../types/token.types";
-import { ICustomRequest } from "../types/customrequest.types";
+import {Request, Response} from "express";
+import {ResponseType} from "../types/response.types";
+import {StatusCodes} from "http-status-codes";
+import {User} from "../models/user";
+import jwt, {Secret} from 'jsonwebtoken'
+import {IToken} from "../types/token.types";
+import {ICustomRequest} from "../types/customrequest.types";
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
-dotenv.config({ path: '../.env' })
+import {IUser} from "../types/user.types";
+import {Types} from "mongoose";
+
+dotenv.config({path: '../.env'})
 
 const secret: Secret = process.env.SECRET!;
 const saltRounds = Number(process.env.SALT_ROUNDS!);
 
 /**
- * Create user 
+ * Create user
  */
 export const createUser = async (req: Request, res: Response) => {
     try {
@@ -25,10 +28,10 @@ export const createUser = async (req: Request, res: Response) => {
 
         if (!user) {
             const err: ResponseType<any> = {
-                data:null,
+                data: null,
                 code: StatusCodes.BAD_REQUEST,
                 error: {
-                    message:'no user exists with the id'
+                    message: 'no user exists with the id'
                 },
                 success: false
             }
@@ -36,15 +39,15 @@ export const createUser = async (req: Request, res: Response) => {
             return;
         }
 
-        const { firstName, lastName, email, password, role, agency } = req.body;
+        const {firstName, lastName, email, password, role, agency} = req.body;
 
         // if the role of user is lesser than requested role to be created, throw error
         if (role >= user.role) {
             const err: ResponseType<any> = {
                 code: StatusCodes.UNAUTHORIZED,
-                data:null,
+                data: null,
                 error: {
-                    message:'User not allowed to create'
+                    message: 'User not allowed to create'
                 },
                 success: false
             }
@@ -55,9 +58,9 @@ export const createUser = async (req: Request, res: Response) => {
         else if (!firstName || !lastName || !email || !password) {
             const err: ResponseType<any> = {
                 code: StatusCodes.BAD_REQUEST,
-                data:null,
+                data: null,
                 error: {
-                    message:'first name, or last name, or email or password cannot be empty'
+                    message: 'first name, or last name, or email or password cannot be empty'
                 },
                 success: false
             }
@@ -68,9 +71,9 @@ export const createUser = async (req: Request, res: Response) => {
         else if (user.role <= 3 && !agency) {
             const err: ResponseType<any> = {
                 code: StatusCodes.BAD_REQUEST,
-                data:null,
+                data: null,
                 error: {
-                    message:'Agency cannot be undefined'
+                    message: 'Agency cannot be undefined'
                 },
                 success: false
             }
@@ -79,13 +82,13 @@ export const createUser = async (req: Request, res: Response) => {
         }
 
         // if user exists with that email already, it is a bad request
-        const userExists = await User.findOne({email:email});
-        if(userExists){
+        const userExists = await User.findOne({email: email});
+        if (userExists) {
             const err: ResponseType<any> = {
                 code: StatusCodes.BAD_REQUEST,
-                data:null,
+                data: null,
                 error: {
-                    message:'User already exists with this email'
+                    message: 'User already exists with this email'
                 },
                 success: false
             }
@@ -110,8 +113,8 @@ export const createUser = async (req: Request, res: Response) => {
         const response: ResponseType<null> = {
             code: StatusCodes.CREATED,
             data: {
-                body:null,
-                message:'user created'
+                body: null,
+                message: 'user created'
             },
             error: null,
             success: true
@@ -121,9 +124,9 @@ export const createUser = async (req: Request, res: Response) => {
     } catch (error) {
         const err: ResponseType<any> = {
             code: StatusCodes.INTERNAL_SERVER_ERROR,
-            data:null,
+            data: null,
             error: {
-                message:''
+                message: ''
             },
             success: false
         }
@@ -132,18 +135,18 @@ export const createUser = async (req: Request, res: Response) => {
     }
 }
 
-export const loginUser = async (req: Request, res: Response)  => {
+export const loginUser = async (req: Request, res: Response) => {
     try {
-        const { email, password } = req.body;
-        const user = await User.findOne({ email });
+        const {email, password} = req.body;
+        const user = await User.findOne({email});
 
         // user not found
         if (!user) {
             const err: ResponseType<any> = {
                 code: StatusCodes.BAD_REQUEST,
-                data:null,
+                data: null,
                 error: {
-                    message:'no user exists with the entered email id'
+                    message: 'no user exists with the entered email id'
                 },
                 success: false
             }
@@ -155,7 +158,7 @@ export const loginUser = async (req: Request, res: Response)  => {
         // password matches
         if (cmp) {
             // sign token 
-            const payload: IToken = { id: user._id }
+            const payload: IToken = {id: user._id}
 
             // creating new token
             const userToken = jwt.sign(payload, secret, {
@@ -168,16 +171,16 @@ export const loginUser = async (req: Request, res: Response)  => {
 
             // setting cookie
             res.cookie('token', userToken, {
-                maxAge: 24*60*60*1000 // 24h, in ms
+                maxAge: 24 * 60 * 60 * 1000 // 24h, in ms
             })
 
             const response: ResponseType<null> = {
                 code: 200,
-                error:null,
-                success:true,
-                data:{
-                    body:null,
-                    message:'user logged in'
+                error: null,
+                success: true,
+                data: {
+                    body: null,
+                    message: 'user logged in'
                 }
             }
             res.status(response.code!).send(response);
@@ -186,9 +189,9 @@ export const loginUser = async (req: Request, res: Response)  => {
             // password do not matches with hash
             const err: ResponseType<any> = {
                 code: StatusCodes.BAD_REQUEST,
-                data:null,
+                data: null,
                 error: {
-                    message:'username or password do not match'
+                    message: 'username or password do not match'
                 },
                 success: false
             }
@@ -199,14 +202,81 @@ export const loginUser = async (req: Request, res: Response)  => {
     } catch (error) {
         const err: ResponseType<any> = {
             code: StatusCodes.INTERNAL_SERVER_ERROR,
-            data:null,
+            data: null,
             error: {
-                message:''
+                message: ''
             },
             success: false
         }
         res.status(err.code!).send(err);
 
         console.error('error in create user controller: ', error)
+    }
+}
+
+/**
+ * Gets the data of the current user
+ * @param req
+ * @param res
+ */
+export const me = async (req: Request, res: Response) => {
+    try {
+        const r = req as ICustomRequest;
+        const decoded = r.decoded as IToken;
+
+        const user = await User.findById(decoded.id)
+
+        if (!user) {
+            const err: ResponseType<any> = {
+                data: null,
+                code: StatusCodes.BAD_REQUEST,
+                error: {
+                    message: 'no user exists with the id'
+                },
+                success: false
+            }
+            res.status(err.code!).send(err);
+            return;
+        }
+
+        type OmitKeys = ['hash', 'token'];
+        type OmittedUser = Prettify<Omit<IUser, OmitKeys[number]> & { _id: Types.ObjectId }>
+
+        const omittedUser: OmittedUser = {
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            role: user.role,
+            agency: user.agency,
+            _id: user._id
+        }
+
+        const response: ResponseType<{
+            user: OmittedUser
+        }> = {
+            success: true,
+            error: null,
+            code: StatusCodes.OK,
+            data: {
+                body: {
+                    user: omittedUser
+                },
+                message: ""
+            }
+        }
+
+        return res.send(response);
+
+    } catch (error) {
+        const err: ResponseType<any> = {
+            code: StatusCodes.INTERNAL_SERVER_ERROR,
+            data: null,
+            error: {
+                message: ''
+            },
+            success: false
+        }
+        console.error('error in me controller: ', error)
+        return res.status(err.code!).send(err);
     }
 }
