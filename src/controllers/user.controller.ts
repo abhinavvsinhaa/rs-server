@@ -1,7 +1,7 @@
 import {Request, Response} from "express";
 import {ResponseType} from "../types/response.types";
 import {StatusCodes} from "http-status-codes";
-import {UserModel} from "../models/user.model";
+import {User} from "../models/user.model";
 import jwt, {Secret} from 'jsonwebtoken'
 import {IToken} from "../types/token.types";
 import {ICustomRequest} from "../types/customrequest.types";
@@ -26,7 +26,7 @@ export const createUser = async (req: Request, res: Response) => {
         const decoded = r.decoded as IToken;
 
         // finding user with decoded id from token
-        const user = await UserModel.findById(decoded.id);
+        const user = await User.findById(decoded.id);
 
         if (!user) {
             const err: ResponseType<any> = {
@@ -84,7 +84,7 @@ export const createUser = async (req: Request, res: Response) => {
         }
 
         // if user exists with that email already, it is a bad request
-        const userExists = await UserModel.findOne({email: email});
+        const userExists = await User.findOne({email: email});
         if (userExists) {
             const err: ResponseType<any> = {
                 code: StatusCodes.BAD_REQUEST,
@@ -101,7 +101,7 @@ export const createUser = async (req: Request, res: Response) => {
         const hash = await bcrypt.hash(password, salt);
 
         // new user created
-        const newUser = new UserModel({
+        const newUser = new User({
             firstName,
             lastName,
             email,
@@ -145,7 +145,7 @@ export const createUser = async (req: Request, res: Response) => {
 export const loginUser = async (req: Request, res: Response) => {
     try {
         const {email, password} = req.body;
-        const user = await UserModel.findOne({email});
+        const user = await User.findOne({email});
 
         // user not found
         if (!user) {
@@ -231,7 +231,7 @@ export const me = async (req: Request, res: Response) => {
         const r = req as ICustomRequest;
         const decoded = r.decoded as IToken;
 
-        const user = await UserModel.findById(decoded.id)
+        const user = await User.findById(decoded.id)
 
         if (!user) {
             const err: ResponseType<any> = {
