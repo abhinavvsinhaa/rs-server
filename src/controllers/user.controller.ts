@@ -1,7 +1,7 @@
 import {Request, Response} from "express";
 import {ResponseType} from "../types/response.types";
 import {StatusCodes} from "http-status-codes";
-import {User} from "../models/user";
+import {UserModel} from "../models/user.model";
 import jwt, {Secret} from 'jsonwebtoken'
 import {IToken} from "../types/token.types";
 import {ICustomRequest} from "../types/customrequest.types";
@@ -17,11 +17,8 @@ const saltRounds = Number(process.env.SALT_ROUNDS!);
 
 /**
  * Create user
-<<<<<<< HEAD
  * @param req
  * @param res
-=======
->>>>>>> d066b4b8f43d05d57937574fd8c178676f17a49c
  */
 export const createUser = async (req: Request, res: Response) => {
     try {
@@ -29,7 +26,7 @@ export const createUser = async (req: Request, res: Response) => {
         const decoded = r.decoded as IToken;
 
         // finding user with decoded id from token
-        const user = await User.findById(decoded.id);
+        const user = await UserModel.findById(decoded.id);
 
         if (!user) {
             const err: ResponseType<any> = {
@@ -52,7 +49,7 @@ export const createUser = async (req: Request, res: Response) => {
                 code: StatusCodes.UNAUTHORIZED,
                 data: null,
                 error: {
-                    message: 'User not allowed to create'
+                    message: 'UserModel not allowed to create'
                 },
                 success: false
             }
@@ -87,13 +84,13 @@ export const createUser = async (req: Request, res: Response) => {
         }
 
         // if user exists with that email already, it is a bad request
-        const userExists = await User.findOne({email: email});
+        const userExists = await UserModel.findOne({email: email});
         if (userExists) {
             const err: ResponseType<any> = {
                 code: StatusCodes.BAD_REQUEST,
                 data: null,
                 error: {
-                    message: 'User already exists with this email'
+                    message: 'UserModel already exists with this email'
                 },
                 success: false
             }
@@ -104,7 +101,7 @@ export const createUser = async (req: Request, res: Response) => {
         const hash = await bcrypt.hash(password, salt);
 
         // new user created
-        const newUser = new User({
+        const newUser = new UserModel({
             firstName,
             lastName,
             email,
@@ -148,7 +145,7 @@ export const createUser = async (req: Request, res: Response) => {
 export const loginUser = async (req: Request, res: Response) => {
     try {
         const {email, password} = req.body;
-        const user = await User.findOne({email});
+        const user = await UserModel.findOne({email});
 
         // user not found
         if (!user) {
@@ -234,7 +231,7 @@ export const me = async (req: Request, res: Response) => {
         const r = req as ICustomRequest;
         const decoded = r.decoded as IToken;
 
-        const user = await User.findById(decoded.id)
+        const user = await UserModel.findById(decoded.id)
 
         if (!user) {
             const err: ResponseType<any> = {
