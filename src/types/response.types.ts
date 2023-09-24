@@ -1,11 +1,17 @@
-export type Error = {
-    message: string,
-    err: any,
-    code?: number
+import {StatusCodes} from "http-status-codes";
+
+export interface dataInterface<T> {
+    body: T,
+    message: string
 }
 
-export type Success = {
+export interface errorInterface {
     message: string,
-    code?: number,
-    data?: any
+}
+
+export type ResponseType<T> = {
+    success: boolean,
+    code: StatusCodes,
+    data: dataInterface<T> | null,
+    error: errorInterface | null
 }

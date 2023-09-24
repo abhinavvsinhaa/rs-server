@@ -8,7 +8,7 @@ import router from "./routes/index.route";
 dotenv.config();
 
 const app: Express = express();
-
+console.log(getAllowedURL())
 let corsOptions = {
     origin: getAllowedURL(),
     optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204

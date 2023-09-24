@@ -1,7 +1,7 @@
 import jwt, { JwtPayload, Secret } from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv'
-import { Error } from '../types/response.types';
+import { ResponseType } from '../types/response.types';
 import { StatusCodes } from 'http-status-codes';
 import { ICustomRequest } from '../types/customrequest.types';
 
@@ -15,9 +15,12 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
         
         // returning if token not present
         if (!token) {
-            const err: Error = {
-                message: 'unauthenticated',
-                err: 'NA',
+            const err: ResponseType<any> = {
+                error: {
+                    message:'unauthenticated'
+                },
+                data:null,
+                success:false,
                 code: StatusCodes.UNAUTHORIZED
             }
             res.status(err.code!).send(err);
@@ -30,10 +33,13 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
         
         next();
     } catch (error: any) {
-        const err: Error = {
-            message: 'error in auth middleware',
-            err: error,
-            code: StatusCodes.INTERNAL_SERVER_ERROR
+        const err: ResponseType<any> = {
+            code: StatusCodes.INTERNAL_SERVER_ERROR,
+            error: {
+                message:'error in auth middleware'
+            },
+            data:null,
+            success:false,
         }
         res.status(err.code!).send(err);
         
