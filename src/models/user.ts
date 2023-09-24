@@ -37,6 +37,9 @@ const userSchema = new Schema<IUser>({
     },
     token: {
         type: String,
+    },
+    hash:{
+        type: String
     }
 })
 

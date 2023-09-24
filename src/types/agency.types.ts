@@ -5,7 +5,7 @@ import { IResources } from "./resources.types";
 export enum MissionStatus {
     ONGOING = 'ongoing',
     SUCCESSFUL = 'successful',
-    UNSUCCESSFUL = 'unsucessful',
+    UNSUCCESSFUL = 'unsuccessful',
     UPCOMING = 'upcoming'
 }
 

@@ -55,7 +55,7 @@ export const createUser = async (req: Request, res: Response) => {
             res.status(err.code!).send(err);
             return;
         }
-        // if the role is <= 3, i.e. is associated with a agency, then it cannot be undefined 
+        // // if the role is <= 3, i.e. is associated with a agency, then it cannot be undefined
         else if (user.role <= 3 && agency == undefined) {
             const err: Error = {
                 message: 'Agency cannot be undefined',
@@ -64,6 +64,17 @@ export const createUser = async (req: Request, res: Response) => {
             }
             res.status(err.code!).send(err);
             return;
+        }
+
+        // if user exists with that email already, it is a bad request
+        const userExists = await User.findOne({email:email});
+        if(userExists){
+            const err: Error = {
+                message: 'User already exists with this email',
+                code: StatusCodes.BAD_REQUEST,
+                err: 'NA'
+            }
+            return res.status(err.code!).send(err);
         }
 
         const salt = await bcrypt.genSalt(saltRounds);
@@ -86,20 +97,19 @@ export const createUser = async (req: Request, res: Response) => {
             code: StatusCodes.CREATED
         }
 
-        res.send(response.message!).send(response);
+        return res.send(response);
     } catch (error) {
         const err: Error = {
             message: '',
             err: error,
             code: StatusCodes.INTERNAL_SERVER_ERROR
         }
-        res.status(err.code!).send(err);
-
         console.error('error in create user controller: ', error)
+        return res.status(err.code!).send(err);
     }
 }
 
-export const logInUser = async (req: Request, res: Response)  => {
+export const loginUser = async (req: Request, res: Response)  => {
     try {
         const { email, password } = req.body;
         const user = await User.findOne({ email });
@@ -115,7 +125,7 @@ export const logInUser = async (req: Request, res: Response)  => {
             return;
         }
 
-        const cmp = await bcrypt.compare(password, user.password);
+        const cmp = await bcrypt.compare(password, user.hash);
         // password matches
         if (cmp) {
             // sign token 

@@ -17,5 +17,6 @@ export interface IUser {
     password: string,
     role: Roles,
     agency?: mongoose.Types.ObjectId,
-    token?: string
+    token?: string,
+    hash:string
 }
