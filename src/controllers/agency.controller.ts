@@ -4,8 +4,9 @@ import {ResponseType} from "../types/response.types";
 import {StatusCodes} from "http-status-codes";
 import {ICustomRequest} from "../types/customrequest.types";
 import {IToken} from "../types/token.types";
-import {UserModel} from "../models/user.model";
+import {User} from "../models/user.model";
 import {Document} from "mongoose";
+import {Status} from "../types/agency.types";
 
 /**
  * Create agency or sign up agency
@@ -75,7 +76,7 @@ export const getAllAgencies = async (req: Request, res: Response) => {
         const { id } = (req as ICustomRequest).decoded as IToken;
 
         // checking if the user is super admin then only he can view all the agencies
-        const user = await UserModel.findById(id);
+        const user = await User.findById(id);
         if (!user || user.role != 4) {
             const err: ResponseType<any> = {
                 code: StatusCodes.UNAUTHORIZED,
@@ -113,5 +114,89 @@ export const getAllAgencies = async (req: Request, res: Response) => {
         res.status(err.code!).send(err);
 
         console.error('error in get all agencies controller: ', e)
+    }
+}
+
+/**
+ * approve agency
+ * @param req
+ * @param res
+ */
+export const approveAgency = async (req: Request, res: Response) => {
+    try {
+        const { id } = (req as ICustomRequest).decoded as IToken;
+
+        // checking if the user is super admin then only he can view all the agencies
+        const user = await User.findById(id);
+        if (!user || user.role != 4) {
+            const err: ResponseType<any> = {
+                code: StatusCodes.UNAUTHORIZED,
+                data: null,
+                error: {
+                    message: 'user not authorized for this route'
+                },
+                success: false
+            }
+            res.status(err.code!).send(err);
+            return;
+        }
+
+        const { agencyId } = req.params;
+        const { status } = req.body
+        const agency = await AgencyModel.findById(agencyId);
+        if (!agency) {
+            const err: ResponseType<any> = {
+                code: StatusCodes.UNAUTHORIZED,
+                data: null,
+                error: {
+                    message: 'agency cannot be found with given id'
+                },
+                success: false
+            }
+            res.status(err.code!).send(err);
+            return;
+        }
+
+        // checks if given status is in enum or not,
+        // if yes, then update it status
+        // else send error back in response
+        if (status in Status) {
+            agency.status = status;
+            await  agency.save();
+
+            const response: ResponseType<null> = {
+                code: StatusCodes.OK,
+                success: true,
+                data: {
+                    body: null,
+                    message: 'agency status updated'
+                },
+                error: null
+            }
+            res.status(response.code!).send(response);
+            return;
+        } else {
+            const err: ResponseType<any> = {
+                code: StatusCodes.BAD_REQUEST,
+                data: null,
+                error: {
+                    message: 'status not allowed'
+                },
+                success: false
+            }
+            res.status(err.code!).send(err);
+        }
+    } catch (e) {
+        const err: ResponseType<any> = {
+            code: StatusCodes.INTERNAL_SERVER_ERROR,
+            data: null,
+            error: {
+                message: ''
+            },
+            success: false
+        }
+        res.status(err.code!).send(err);
+
+        console.error('error in approve agency controller: ', e)
     }
 }
